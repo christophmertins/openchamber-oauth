@@ -136,6 +136,7 @@ import { isSpaceId, spaceIdOfPreviewPartition, spacePreviewPartition, spacePrevi
 import { shouldBlockGuestFrameNavigation } from './guest-frame-navigation.mjs';
 import { createRelayDevTunnelBridge } from './relay-dev-tunnel.mjs';
 import { parsePairingDeepLink } from './pairing-deep-link.mjs';
+import { parseHostCredentialLink } from './host-credential-link.mjs';
 import { attachRendererRecovery, takeSafeStart } from './renderer-recovery.mjs';
 import { createLoadFailureWarningFilter } from './load-failure-warnings.mjs';
 import { mintOutsideFileGrant } from '@openchamber/web/server/lib/fs/routes.js';
@@ -2134,6 +2135,32 @@ const dispatchDeepLink = (link) => {
       return;
     }
     log.warn('[electron] invalid connect deep-link payload');
+    return;
+  }
+  if (link.type === 'connect-host') {
+    const credential = parseHostCredentialLink(link.raw, { protocol: DEEP_LINK_PROTOCOL });
+    if (!credential) {
+      log.warn('[electron] invalid host credential deep-link payload');
+      return;
+    }
+    // Same consent rule as a connect link: the page that produced this link ran
+    // in a browser, so nothing is stored before the user names the server.
+    void confirmConnectDeepLink({
+      serverUrl: credential.url,
+      label: credential.label || credential.url,
+    }).then((confirmed) => {
+      if (!confirmed) {
+        log.info('[electron] host credential deep-link declined by user');
+        return;
+      }
+      queueHostAction({
+        type: 'credential',
+        url: credential.url,
+        token: credential.token,
+        ...(credential.header ? { header: credential.header } : {}),
+        ...(credential.label ? { label: credential.label } : {}),
+      });
+    });
     return;
   }
   // Sent by the MCP OAuth callback page after it completes authorization in
