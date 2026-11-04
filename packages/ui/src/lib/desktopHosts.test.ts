@@ -18,7 +18,7 @@ mock.module('@/lib/relay/tunnel-client', () => ({
   },
 }));
 
-const { desktopHostProbe, desktopHostsGet, desktopHostsSet, desktopHostUpdateServer, importDesktopHostPairing, probeRelayDesktopHost, redactSensitiveUrl, resolveDesktopHostUrl, waitForDesktopHostUpdated } = await import('./desktopHosts');
+const { desktopHostProbe, desktopHostsGet, desktopHostsSet, desktopHostUpdateServer, importDesktopHostPairing, mergeHostCredential, probeRelayDesktopHost, redactSensitiveUrl, resolveDesktopHostUrl, waitForDesktopHostUpdated } = await import('./desktopHosts');
 
 const withDesktopBridge = async <T>(handler: (cmd: string, args: Record<string, unknown>) => unknown | Promise<unknown>, run: () => Promise<T>): Promise<T> => {
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
@@ -304,4 +304,32 @@ describe('probeRelayDesktopHost', () => {
     expect(result.status).toBe('auth');
     expect(tunnel.calls).toEqual(['/health', '/auth/session']);
   });
+});
+
+test('adds a host with the credential header', () => {
+  const { hosts, hostId } = mergeHostCredential([], { url: 'https://oc.example.com', token: 't', header: 'X-Oc-Hosting-Token', label: 'Work' }, 'host-a');
+  expect(hostId).toBe('host-a');
+  expect(hosts).toHaveLength(1);
+  expect(hosts[0]).toMatchObject({
+    id: 'host-a',
+    label: 'Work',
+    url: 'https://oc.example.com',
+    requestHeaders: { 'X-Oc-Hosting-Token': 't' },
+  });
+  expect(hosts[0].clientToken).toBeUndefined();
+});
+
+test('reuses the existing host for the same address and replaces its credential', () => {
+  const existing = [{ id: 'host-old', label: 'Old', url: 'https://oc.example.com', apiUrl: 'https://oc.example.com', clientToken: 'stale' }];
+  const { hosts, hostId } = mergeHostCredential(existing, { url: 'https://oc.example.com', token: 't', header: 'Authorization' }, 'host-new');
+  expect(hostId).toBe('host-old');
+  expect(hosts).toHaveLength(1);
+  expect(hosts[0]).toMatchObject({ id: 'host-old', label: 'Old', clientToken: 't' });
+  expect(hosts[0].requestHeaders).toBeUndefined();
+});
+
+test('keeps a host label when the link names none', () => {
+  const existing = [{ id: 'host-old', label: 'Home', url: 'https://oc.example.com' }];
+  const { hosts } = mergeHostCredential(existing, { url: 'https://oc.example.com', token: 't', label: '' }, 'host-new');
+  expect(hosts[0].label).toBe('Home');
 });

@@ -6,9 +6,9 @@
 // saved host keeps both its direct and relay legs. Activation probes the direct
 // address first and falls back to the tunnel, like the host switcher.
 
-import { takePendingDesktopHostActions } from '@/lib/desktop';
+import { restartDesktopApp, takePendingDesktopHostActions } from '@/lib/desktop';
 import { runtimeKeyForDesktopHost } from '@/lib/desktopCurrentHost';
-import { desktopHostsGet, desktopHostsSet, getDesktopHostApiUrl, importDesktopHostPairing, normalizeHostUrl } from '@/lib/desktopHosts';
+import { desktopHostsGet, desktopHostsSet, getDesktopHostApiUrl, importDesktopHostPairing, mergeHostCredential, normalizeHostUrl } from '@/lib/desktopHosts';
 import { restoreDesktopRelayRuntime } from '@/lib/desktopRelayRestore';
 import { switchRuntimeEndpoint } from '@/lib/runtime-switch';
 
@@ -50,6 +50,20 @@ const pairAndActivate = async (link: string): Promise<void> => {
   await activateHost(imported.hostId, { reconnectActive: true });
 };
 
+const applyHostCredential = async (credential: { url: string; token: string; header?: string; label?: string }): Promise<void> => {
+  const config = await desktopHostsGet();
+  const merged = mergeHostCredential(config.hosts, credential, `host-${Date.now().toString(16)}`);
+  await desktopHostsSet({
+    hosts: merged.hosts,
+    defaultHostId: merged.hostId,
+    initialHostChoiceCompleted: true,
+  });
+  // The credential decides which runtime the next boot can reach, including the
+  // first launch that has no host chosen yet. Boot re-reads it from the hosts
+  // file, so a restart is also what makes the sign-in survive one.
+  await restartDesktopApp();
+};
+
 /** Runs every pending action in order; one failure does not stop the rest. */
 export const runPendingDesktopHostActions = async (
   onFailure: (failure: HostActionFailure) => void,
@@ -58,6 +72,7 @@ export const runPendingDesktopHostActions = async (
   for (const action of actions) {
     try {
       if (action.type === 'pairing') await pairAndActivate(action.link);
+      else if (action.type === 'credential') await applyHostCredential(action);
       else await activateHost(action.hostId);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

@@ -351,6 +351,52 @@ export const getDesktopHostApiUrl = (host: DesktopHost): string => {
   return normalizeHostUrl(host.apiUrl || host.url) || host.apiUrl || host.url;
 };
 
+export type HostCredential = { url: string; token: string; header?: string; label?: string };
+
+/**
+ * A browser sign-in names one server and one credential. An address that is
+ * already saved is updated in place (its id and other transports stay), and
+ * `authorization` or no header at all belongs in the bearer slot.
+ */
+export const mergeHostCredential = (
+  hosts: DesktopHost[],
+  credential: HostCredential,
+  newId: string,
+): { hosts: DesktopHost[]; hostId: string } => {
+  const url = normalizeHostUrl(credential.url);
+  if (!url) throw new Error('invalid-host-address');
+  const header = credential.header?.trim() || '';
+  const bearer = !header || header.toLowerCase() === 'authorization';
+  const label = credential.label?.trim() || '';
+  const existingIndex = hosts.findIndex((host) => normalizeHostUrl(getDesktopHostApiUrl(host)) === url);
+
+  if (existingIndex === -1) {
+    const host: DesktopHost = {
+      id: newId,
+      label: label || url,
+      url,
+      apiUrl: url,
+      ...(bearer
+        ? { clientToken: credential.token }
+        : { requestHeaders: { [header]: credential.token } }),
+    };
+    return { hosts: [...hosts, host], hostId: newId };
+  }
+
+  const existing = hosts[existingIndex];
+  const next: DesktopHost = {
+    ...existing,
+    ...(label ? { label } : {}),
+    ...(bearer
+      ? { clientToken: credential.token }
+      : { requestHeaders: { ...(existing.requestHeaders || {}), [header]: credential.token } }),
+  };
+  return {
+    hosts: hosts.map((host, index) => (index === existingIndex ? next : host)),
+    hostId: existing.id,
+  };
+};
+
 const getInvoke = (): DesktopInvoke | null => {
   if (!hasDesktopInvoke()) return null;
   return (command, args) => invokeDesktop(command, args) as Promise<unknown>;
