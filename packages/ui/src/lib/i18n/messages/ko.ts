@@ -3314,6 +3314,8 @@ export const dict: Record<I18nKey, string> = {
   'onboarding.remoteConnection.errors.failedToSaveConnection': '연결 저장에 실패했습니다',
   'onboarding.remoteConnection.status.connectedSuccessfully': '성공적으로 연결되었습니다 ({latencyMs}ms)',
   'onboarding.remoteConnection.status.authWarning': '서버에 인증이 필요합니다. 그래도 연결할 수 있습니다.',
+  'onboarding.remoteConnection.actions.signInWithBrowser': '브라우저에서 로그인',
+  'onboarding.remoteConnection.status.browserSignInHint': '브라우저에서 로그인을 마치면 앱이 연결됩니다.',
   'onboarding.remoteConnection.status.connectionFailed': '연결에 실패했습니다',
   'onboarding.remoteConnection.status.suggestionsUnreachable': '서버 주소를 확인하고, 서버가 실행 중인지와 네트워크 연결을 점검하세요.',
   'onboarding.remoteConnection.status.suggestionsWrongService': 'URL이 OpenChamber 서버를 가리키는지 확인하거나 서버 관리자에게 문의하세요.',

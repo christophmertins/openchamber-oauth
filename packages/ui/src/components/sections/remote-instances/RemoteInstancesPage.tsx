@@ -69,6 +69,7 @@ import {
   type DesktopHostRelay,
   type HostProbeResult,
 } from '@/lib/desktopHosts';
+import { withDesktopSignInMarker } from '@/lib/desktopSignIn';
 import { createRelayTunnelClient } from '@/lib/relay/tunnel-client';
 import { getDesktopLanAddress, isDesktopLocalOriginActive, isDesktopShell } from '@/lib/desktop';
 import { useEnterprisePolicyStore } from '@/stores/useEnterprisePolicyStore';
@@ -623,6 +624,21 @@ export const RemoteInstancesPage: React.FC = () => {
       navigateToUrl(resolved.redeemUrl);
     }
   }, [directDefaultHostId, directHeaders, directHosts, directLabel, directToken, directUrl, persistDirectHosts, t]);
+
+  const startBrowserSignIn = React.useCallback(async () => {
+    const target = normalizeHostUrl(directUrl);
+    if (!target) {
+      toast.error(t('desktopHostSwitcher.error.invalidUrl'));
+      return;
+    }
+    const probe = await desktopHostProbe(target).catch((): HostProbeResult => ({ status: 'unreachable', latencyMs: 0 }));
+    const signInUrl = probe.status === 'auth' && probe.authUrl ? withDesktopSignInMarker(probe.authUrl) : null;
+    if (!signInUrl) {
+      toast.error(t('settings.remoteInstances.direct.error.signInUnavailable'));
+      return;
+    }
+    void openExternalUrl(signInUrl);
+  }, [directUrl, t]);
 
   const importDirectConnectLink = React.useCallback(async () => {
     setDirectError(null);
@@ -1784,6 +1800,9 @@ export const RemoteInstancesPage: React.FC = () => {
             <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); void handleAddDirectHost(); }}>
               <Input className="h-8" value={directLabel} onChange={(event) => setDirectLabel(event.target.value)} placeholder={t('settings.remoteInstances.direct.field.labelPlaceholder')} disabled={directSaving} />
               <Input className="h-8" value={directUrl} onChange={(event) => setDirectUrl(event.target.value)} placeholder={t('settings.remoteInstances.direct.field.urlPlaceholder')} disabled={directSaving} autoFocus />
+              <Button type="button" variant="ghost" size="xs" className="!font-normal" onClick={() => void startBrowserSignIn()} disabled={directSaving || !directUrl.trim()}>
+                {t('settings.remoteInstances.direct.actions.signInWithBrowser')}
+              </Button>
               <div className="space-y-1">
                 <Input className="h-8" value={directToken} onChange={(event) => setDirectToken(event.target.value)} placeholder={t('settings.remoteInstances.direct.field.tokenPlaceholder')} type="password" disabled={directSaving} />
                 <p className="px-1 typography-micro text-muted-foreground">{t('settings.remoteInstances.direct.note')}</p>

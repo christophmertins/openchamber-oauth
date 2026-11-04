@@ -2414,6 +2414,8 @@ export const settingsDict = {
   'settings.remoteInstances.direct.headers.actions.add': 'Ajouter un en-tête',
   'settings.remoteInstances.direct.headers.removeAria': 'Supprimer l’en-tête',
   'settings.remoteInstances.direct.actions.add': 'Ajouter le serveur',
+  'settings.remoteInstances.direct.actions.signInWithBrowser': 'Se connecter dans le navigateur',
+  'settings.remoteInstances.direct.error.signInUnavailable': 'Ce serveur ne demande pas de connexion dans le navigateur.',
   'settings.remoteInstances.direct.import.description': 'Collez un lien de connexion provenant d’un autre serveur OpenChamber.',
   'settings.remoteInstances.direct.import.placeholder': 'openchamber://connect?...',
   'settings.remoteInstances.direct.import.action': 'Importer le lien',

@@ -3314,6 +3314,8 @@ export const dict = {
   'onboarding.remoteConnection.errors.failedToSaveConnection': 'Failed to save connection',
   'onboarding.remoteConnection.status.connectedSuccessfully': 'Connected successfully ({latencyMs}ms)',
   'onboarding.remoteConnection.status.authWarning': 'Server requires authentication. You can still connect.',
+  'onboarding.remoteConnection.actions.signInWithBrowser': 'Sign in in browser',
+  'onboarding.remoteConnection.status.browserSignInHint': 'Finish signing in in your browser. The app connects when you are done.',
   'onboarding.remoteConnection.status.connectionFailed': 'Connection Failed',
   'onboarding.remoteConnection.status.suggestionsUnreachable': 'Suggestions: Check the server address, verify the server is running, or check your network connection.',
   'onboarding.remoteConnection.status.suggestionsWrongService': 'Suggestions: Verify the URL points to an OpenChamber server, or contact the server administrator.',

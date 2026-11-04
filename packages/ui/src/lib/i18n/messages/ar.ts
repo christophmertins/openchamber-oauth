@@ -3241,6 +3241,8 @@ export const dict = {
   'onboarding.remoteConnection.errors.failedToSaveConnection': 'تعذّر حفظ الاتصال',
   'onboarding.remoteConnection.status.connectedSuccessfully': 'تم الاتصال بنجاح ({latencyMs} ms)',
   'onboarding.remoteConnection.status.authWarning': 'يتطلب الخادم المصادقة. لا يزال بإمكانك الاتصال.',
+  'onboarding.remoteConnection.actions.signInWithBrowser': 'تسجيل الدخول في المتصفح',
+  'onboarding.remoteConnection.status.browserSignInHint': 'أكمل تسجيل الدخول في المتصفح. سيتصل التطبيق بعد ذلك.',
   'onboarding.remoteConnection.status.connectionFailed': 'فشل الاتصال',
   'onboarding.remoteConnection.status.suggestionsUnreachable': 'اقتراحات: تحقق من عنوان الخادم، وتأكد من أن الخادم قيد التشغيل، أو تحقق من اتصالك بالشبكة.',
   'onboarding.remoteConnection.status.suggestionsWrongService': 'اقتراحات: تأكد من أن URL يشير إلى خادم OpenChamber، أو تواصل مع مسؤول الخادم.',

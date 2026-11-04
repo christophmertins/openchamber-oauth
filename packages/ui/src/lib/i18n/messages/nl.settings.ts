@@ -370,6 +370,8 @@ export const settingsDict = {
   'settings.remoteInstances.direct.headers.actions.add': 'Header toevoegen',
   'settings.remoteInstances.direct.headers.removeAria': 'Header verwijderen',
   'settings.remoteInstances.direct.actions.add': 'Server toevoegen',
+  'settings.remoteInstances.direct.actions.signInWithBrowser': 'In de browser aanmelden',
+  'settings.remoteInstances.direct.error.signInUnavailable': 'Deze server vraagt niet om aanmelding in de browser.',
   'settings.remoteInstances.direct.import.description': 'Plak een verbindingslink van een andere OpenChamber-server.',
   'settings.remoteInstances.direct.import.placeholder': 'openchamber://connect?...',
   'settings.remoteInstances.direct.import.action': 'Link importeren',

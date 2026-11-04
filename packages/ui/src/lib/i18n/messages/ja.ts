@@ -3311,6 +3311,8 @@ export const dict: Record<I18nKey, string> = {
   'onboarding.remoteConnection.errors.failedToSaveConnection': '接続の保存に失敗しました',
   'onboarding.remoteConnection.status.connectedSuccessfully': '接続に成功しました（{latencyMs}ms）',
   'onboarding.remoteConnection.status.authWarning': 'サーバーは認証を必要とします。接続は可能です。',
+  'onboarding.remoteConnection.actions.signInWithBrowser': 'ブラウザーでサインイン',
+  'onboarding.remoteConnection.status.browserSignInHint': 'ブラウザーでサインインを完了してください。その後アプリが接続します。',
   'onboarding.remoteConnection.status.connectionFailed': '接続に失敗しました',
   'onboarding.remoteConnection.status.suggestionsUnreachable': 'ヒント: サーバーアドレスを確認し、サーバーが実行中であることを確認し、ネットワーク接続を確認してください。',
   'onboarding.remoteConnection.status.suggestionsWrongService': 'ヒント: URLがOpenChamberサーバーを指しているか確認するか、サーバー管理者に問い合わせてください。',

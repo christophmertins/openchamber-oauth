@@ -3241,6 +3241,8 @@ export const dict = {
   'onboarding.remoteConnection.errors.failedToSaveConnection': 'שמירת החיבור נכשלה',
   'onboarding.remoteConnection.status.connectedSuccessfully': 'החיבור הצליח ({latencyMs} אלפיות שנייה)',
   'onboarding.remoteConnection.status.authWarning': 'השרת דורש אימות. עדיין אפשר להתחבר.',
+  'onboarding.remoteConnection.actions.signInWithBrowser': 'התחברות בדפדפן',
+  'onboarding.remoteConnection.status.browserSignInHint': 'סיים את ההתחברות בדפדפן. האפליקציה תתחבר לאחר מכן.',
   'onboarding.remoteConnection.status.connectionFailed': 'החיבור נכשל',
   'onboarding.remoteConnection.status.suggestionsUnreachable': 'הצעות: לבדוק את כתובת השרת, לוודא שהשרת פועל או לבדוק את חיבור הרשת.',
   'onboarding.remoteConnection.status.suggestionsWrongService': 'הצעות: לוודא שכתובת ה-URL מפנה לשרת OpenChamber, או לפנות למנהל השרת.',

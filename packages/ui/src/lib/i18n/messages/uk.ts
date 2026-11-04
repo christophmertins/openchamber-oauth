@@ -3271,6 +3271,8 @@ export const dict: Record<I18nKey, string> = {
   "onboarding.remoteConnection.errors.failedToSaveConnection": "Не вдалося зберегти з’єднання",
   "onboarding.remoteConnection.status.connectedSuccessfully": "Підключено успішно ({latencyMs}ms)",
   "onboarding.remoteConnection.status.authWarning": "Сервер вимагає автентифікації. Ви все ще можете підключитися.",
+  'onboarding.remoteConnection.actions.signInWithBrowser': 'Увійти в браузері',
+  'onboarding.remoteConnection.status.browserSignInHint': 'Завершіть вхід у браузері. Застосунок підключиться після цього.',
   "onboarding.remoteConnection.status.connectionFailed": "Збій підключення",
   "onboarding.remoteConnection.status.suggestionsUnreachable": "Пропозиції: перевірте адресу сервера, перевірте, чи сервер працює, або перевірте підключення до мережі.",
   "onboarding.remoteConnection.status.suggestionsWrongService": "Пропозиції: переконайтеся, що URL вказує на сервер OpenChamber або зверніться до адміністратора сервера.",

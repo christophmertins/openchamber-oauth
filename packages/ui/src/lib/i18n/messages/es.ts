@@ -3271,6 +3271,8 @@ export const dict: Record<I18nKey, string> = {
   "onboarding.remoteConnection.errors.failedToSaveConnection": "No se pudo guardar la conexión",
   "onboarding.remoteConnection.status.connectedSuccessfully": "Conexión correcta ({latencyMs}ms)",
   "onboarding.remoteConnection.status.authWarning": "El servidor requiere autenticación. Puedes conectarte aún así.",
+  'onboarding.remoteConnection.actions.signInWithBrowser': 'Iniciar sesión en el navegador',
+  'onboarding.remoteConnection.status.browserSignInHint': 'Termina el inicio de sesión en el navegador. La aplicación se conecta después.',
   "onboarding.remoteConnection.status.connectionFailed": "Error de conexión",
   "onboarding.remoteConnection.status.suggestionsUnreachable": "Sugerencias: Verifica la dirección del servidor, asegúrate de que el servidor esté en ejecución o revisa tu conexión de red.",
   "onboarding.remoteConnection.status.suggestionsWrongService": "Sugerencias: Verifica que la URL apunte a un servidor OpenChamber o contacta al administrador del servidor.",

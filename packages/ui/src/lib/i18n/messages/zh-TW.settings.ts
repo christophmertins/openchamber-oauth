@@ -343,6 +343,8 @@ export const settingsDict = {
   'settings.remoteInstances.direct.headers.actions.add': 'Add header',
   'settings.remoteInstances.direct.headers.removeAria': 'Remove header',
   'settings.remoteInstances.direct.actions.add': '新增直接連線',
+  'settings.remoteInstances.direct.actions.signInWithBrowser': '在瀏覽器中登入',
+  'settings.remoteInstances.direct.error.signInUnavailable': '此伺服器不要求在瀏覽器中登入。',
   'settings.remoteInstances.direct.import.description': '貼上 connect-url 輸出或 openchamber://connect 連結來匯入。',
   'settings.remoteInstances.direct.import.placeholder': '貼上連線連結',
   'settings.remoteInstances.direct.import.action': '匯入連線',

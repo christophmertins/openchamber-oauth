@@ -370,6 +370,8 @@ export const settingsDict = {
   'settings.remoteInstances.direct.headers.actions.add': 'Add header',
   'settings.remoteInstances.direct.headers.removeAria': 'Remove header',
   'settings.remoteInstances.direct.actions.add': 'サーバーを追加',
+  'settings.remoteInstances.direct.actions.signInWithBrowser': 'ブラウザーでサインイン',
+  'settings.remoteInstances.direct.error.signInUnavailable': 'このサーバーはブラウザーでのサインインを求めていません。',
   'settings.remoteInstances.direct.import.description': '別の OpenChamber サーバーからの接続リンクを貼り付けてください。',
   'settings.remoteInstances.direct.import.placeholder': 'openchamber://connect?...',
   'settings.remoteInstances.direct.import.action': 'リンクをインポート',

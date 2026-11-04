@@ -3280,6 +3280,8 @@ export const dict: Record<I18nKey, string> = {
   'onboarding.remoteConnection.errors.failedToSaveConnection': '保存连接失败',
   'onboarding.remoteConnection.status.connectedSuccessfully': '连接成功（{latencyMs}ms）',
   'onboarding.remoteConnection.status.authWarning': '服务器需要身份验证。你仍可继续连接。',
+  'onboarding.remoteConnection.actions.signInWithBrowser': '在浏览器中登录',
+  'onboarding.remoteConnection.status.browserSignInHint': '请在浏览器中完成登录，完成后应用会自动连接。',
   'onboarding.remoteConnection.status.connectionFailed': '连接失败',
   'onboarding.remoteConnection.status.suggestionsUnreachable': '建议：检查服务器地址、确认服务已启动，或检查网络连接。',
   'onboarding.remoteConnection.status.suggestionsWrongService': '建议：确认 URL 指向 OpenChamber 服务器，或联系服务器管理员。',

@@ -3018,6 +3018,8 @@ export const dict = {
   'onboarding.remoteConnection.errors.failedToSaveConnection': 'Speichern der Verbindung fehlgeschlagen',
   'onboarding.remoteConnection.status.connectedSuccessfully': 'Erfolgreich verbunden ({latencyMs}ms)',
   'onboarding.remoteConnection.status.authWarning': 'Server erfordert Authentifizierung. Sie können sich immer noch verbinden.',
+  'onboarding.remoteConnection.actions.signInWithBrowser': 'Im Browser anmelden',
+  'onboarding.remoteConnection.status.browserSignInHint': 'Schließe die Anmeldung im Browser ab. Die App verbindet sich danach.',
   'onboarding.remoteConnection.status.connectionFailed': 'Verbindung fehlgeschlagen',
   'onboarding.remoteConnection.status.suggestionsUnreachable': 'Vorschläge: Überprüfen Sie die Serveradresse, stellen Sie sicher, dass der Server läuft, oder prüfen Sie Ihre Netzwerkverbindung.',
   'onboarding.remoteConnection.status.suggestionsWrongService': 'Vorschläge: Stellen Sie sicher, dass die URL auf einen OpenChamber-Server zeigt, oder kontaktieren Sie den Server-Administrator.',

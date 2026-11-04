@@ -337,6 +337,8 @@ export const settingsDict = {
   'settings.remoteInstances.direct.headers.actions.add': '添加标头',
   'settings.remoteInstances.direct.headers.removeAria': '移除标头',
   'settings.remoteInstances.direct.actions.add': '添加服务器',
+  'settings.remoteInstances.direct.actions.signInWithBrowser': '在浏览器中登录',
+  'settings.remoteInstances.direct.error.signInUnavailable': '此服务器不要求在浏览器中登录。',
   'settings.remoteInstances.direct.import.description': '粘贴来自另一个 OpenChamber 服务器的连接链接。',
   'settings.remoteInstances.direct.import.placeholder': 'openchamber://connect?...',
   'settings.remoteInstances.direct.import.action': '导入链接',

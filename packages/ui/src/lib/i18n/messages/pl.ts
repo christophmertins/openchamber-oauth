@@ -1311,6 +1311,8 @@ export const dict: Record<I18nKey, string> = {
   'onboarding.remoteConnection.errors.failedToSaveConnection': 'Nie udało się zapisać połączenia',
   'onboarding.remoteConnection.status.connectedSuccessfully': 'Połączono pomyślnie ({latencyMs}ms)',
   'onboarding.remoteConnection.status.authWarning': 'Serwer wymaga uwierzytelnienia. Nadal możesz się połączyć.',
+  'onboarding.remoteConnection.actions.signInWithBrowser': 'Zaloguj się w przeglądarce',
+  'onboarding.remoteConnection.status.browserSignInHint': 'Dokończ logowanie w przeglądarce. Aplikacja połączy się po nim.',
   'onboarding.remoteConnection.status.connectionFailed': 'Połączenie nie powiodło się',
   'onboarding.remoteConnection.status.suggestionsUnreachable': 'Sugestie: Sprawdź adres serwera, zweryfikuj czy serwer działa, lub sprawdź swoje połączenie sieciowe.',
   'onboarding.remoteConnection.status.suggestionsWrongService': 'Sugestie: Zweryfikuj czy URL wskazuje na serwer OpenChamber, lub skontaktuj się z administratorem serwera.',

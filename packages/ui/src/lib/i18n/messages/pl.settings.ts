@@ -2042,6 +2042,8 @@ export const settingsDict = {
   'settings.remoteInstances.direct.headers.actions.add': 'Add header',
   'settings.remoteInstances.direct.headers.removeAria': 'Remove header',
   'settings.remoteInstances.direct.actions.add': 'Dodaj serwer',
+  'settings.remoteInstances.direct.actions.signInWithBrowser': 'Zaloguj się w przeglądarce',
+  'settings.remoteInstances.direct.error.signInUnavailable': 'Ten serwer nie wymaga logowania w przeglądarce.',
   'settings.remoteInstances.direct.import.description': 'Wklej link połączenia z innego serwera OpenChamber.',
   'settings.remoteInstances.direct.import.placeholder': 'openchamber://connect?...',
   'settings.remoteInstances.direct.import.action': 'Importuj link',

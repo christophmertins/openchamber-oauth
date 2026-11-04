@@ -8,6 +8,8 @@ import {
   type DesktopHost,
   type HostProbeResult,
 } from '@/lib/desktopHosts';
+import { withDesktopSignInMarker } from '@/lib/desktopSignIn';
+import { openExternalUrl } from '@/lib/url';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { isDesktopShell, restartDesktopApp } from '@/lib/desktop';
@@ -361,7 +363,25 @@ export function RemoteConnectionForm({
               color: 'var(--status-warning)',
             }}
           >
-            {t('onboarding.remoteConnection.status.authWarning')}
+            <div>{t('onboarding.remoteConnection.status.authWarning')}</div>
+            {probeResult.authUrl ? (
+              <div className="mt-2 space-y-1.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const target = withDesktopSignInMarker(probeResult.authUrl || '');
+                    if (target) void openExternalUrl(target);
+                  }}
+                >
+                  {t('onboarding.remoteConnection.actions.signInWithBrowser')}
+                </Button>
+                <p className="typography-micro text-muted-foreground">
+                  {t('onboarding.remoteConnection.status.browserSignInHint')}
+                </p>
+              </div>
+            ) : null}
           </div>
         )}
 

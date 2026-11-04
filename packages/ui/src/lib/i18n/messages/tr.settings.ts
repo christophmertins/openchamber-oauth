@@ -346,6 +346,8 @@ export const settingsDict = {
   'settings.remoteInstances.direct.headers.actions.add': 'Header ekle',
   'settings.remoteInstances.direct.headers.removeAria': 'Header\'ı kaldır',
   'settings.remoteInstances.direct.actions.add': 'Sunucu ekle',
+  'settings.remoteInstances.direct.actions.signInWithBrowser': 'Tarayıcıda oturum aç',
+  'settings.remoteInstances.direct.error.signInUnavailable': 'Bu sunucu tarayıcıda oturum açmayı istemiyor.',
   'settings.remoteInstances.direct.import.description': 'Başka bir OpenChamber sunucusundan bağlantı linki yapıştırın.',
   'settings.remoteInstances.direct.import.placeholder': 'openchamber://connect?...',
   'settings.remoteInstances.direct.import.action': 'Link\'i içe aktar',

@@ -337,6 +337,8 @@ export const settingsDict = {
   "settings.remoteInstances.direct.headers.actions.add": "Add header",
   "settings.remoteInstances.direct.headers.removeAria": "Remove header",
   "settings.remoteInstances.direct.actions.add": "Añadir servidor",
+  'settings.remoteInstances.direct.actions.signInWithBrowser': 'Iniciar sesión en el navegador',
+  'settings.remoteInstances.direct.error.signInUnavailable': 'Este servidor no pide un inicio de sesión en el navegador.',
   "settings.remoteInstances.direct.import.description": "Pega un enlace de conexión de otro servidor de OpenChamber.",
   "settings.remoteInstances.direct.import.placeholder": "openchamber://connect?...",
   "settings.remoteInstances.direct.import.action": "Importar enlace",

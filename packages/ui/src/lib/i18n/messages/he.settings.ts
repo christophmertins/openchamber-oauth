@@ -369,6 +369,8 @@ export const settingsDict = {
   'settings.remoteInstances.direct.headers.actions.add': 'הוסף כותרת',
   'settings.remoteInstances.direct.headers.removeAria': 'הסר כותרת',
   'settings.remoteInstances.direct.actions.add': 'הוסף שרת',
+  'settings.remoteInstances.direct.actions.signInWithBrowser': 'התחברות בדדפדפן',
+  'settings.remoteInstances.direct.error.signInUnavailable': 'השרת הזה לא מבקש התחברות בדפדפן.',
   'settings.remoteInstances.direct.import.description': 'יש להדביק קישור חיבור משרת OpenChamber אחר.',
   'settings.remoteInstances.direct.import.placeholder': 'openchamber://connect?…',
   'settings.remoteInstances.direct.import.action': 'ייבא קישור',

@@ -3129,6 +3129,8 @@ export const dict = {
   'onboarding.remoteConnection.errors.failedToSaveConnection': 'Bağlantı kaydedilemedi',
   'onboarding.remoteConnection.status.connectedSuccessfully': 'Başarıyla bağlanıldı ({latencyMs}ms)',
   'onboarding.remoteConnection.status.authWarning': 'Sunucu kimlik doğrulaması gerektiriyor. Yine de bağlanabilirsiniz.',
+  'onboarding.remoteConnection.actions.signInWithBrowser': 'Tarayıcıda oturum aç',
+  'onboarding.remoteConnection.status.browserSignInHint': 'Oturum açmayı tarayıcıda tamamla. Uygulama ardından bağlanır.',
   'onboarding.remoteConnection.status.connectionFailed': 'Bağlantı Başarısız',
   'onboarding.remoteConnection.status.suggestionsUnreachable': 'Öneriler: Sunucu adresini kontrol edin, sunucunun çalıştığından emin olun veya ağ bağlantınızı kontrol edin.',
   'onboarding.remoteConnection.status.suggestionsWrongService': 'Öneriler: URL\'nin bir OpenChamber sunucusuna işaret ettiğini doğrulayın veya sunucu yöneticisiyle iletişime geçin.',

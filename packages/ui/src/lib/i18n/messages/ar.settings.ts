@@ -369,6 +369,8 @@ export const settingsDict = {
   'settings.remoteInstances.direct.headers.actions.add': 'إضافة ترويسة',
   'settings.remoteInstances.direct.headers.removeAria': 'إزالة الترويسة',
   'settings.remoteInstances.direct.actions.add': 'إضافة خادم',
+  'settings.remoteInstances.direct.actions.signInWithBrowser': 'تسجيل الدخول في المتصفح',
+  'settings.remoteInstances.direct.error.signInUnavailable': 'هذا الخادم لا يطلب تسجيل الدخول في المتصفح.',
   'settings.remoteInstances.direct.import.description': 'الصق رابط اتصال من خادم OpenChamber آخر.',
   'settings.remoteInstances.direct.import.placeholder': 'openchamber://connect?…',
   'settings.remoteInstances.direct.import.action': 'استيراد الرابط',

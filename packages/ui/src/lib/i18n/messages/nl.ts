@@ -3314,6 +3314,8 @@ export const dict = {
   'onboarding.remoteConnection.errors.failedToSaveConnection': 'Kan verbinding niet opslaan',
   'onboarding.remoteConnection.status.connectedSuccessfully': 'Verbinding geslaagd ({latencyMs}ms)',
   'onboarding.remoteConnection.status.authWarning': 'Server vereist authenticatie. U kunt alsnog verbinden.',
+  'onboarding.remoteConnection.actions.signInWithBrowser': 'In de browser aanmelden',
+  'onboarding.remoteConnection.status.browserSignInHint': 'Rond de aanmelding af in je browser. De app maakt daarna verbinding.',
   'onboarding.remoteConnection.status.connectionFailed': 'Kan niet verbinden',
   'onboarding.remoteConnection.status.suggestionsUnreachable': 'Suggesties: controleer het serveradres, controleer of de server draait of controleer uw netwerkverbinding.',
   'onboarding.remoteConnection.status.suggestionsWrongService': 'Suggesties: controleer of de URL naar een OpenChamber-server verwijst of neem contact op met de serverbeheerder.',

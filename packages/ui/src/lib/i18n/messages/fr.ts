@@ -3000,6 +3000,8 @@ export const dict = {
   'onboarding.remoteConnection.errors.failedToSaveConnection': 'Échec de l\'enregistrement de la connexion',
   'onboarding.remoteConnection.status.connectedSuccessfully': 'Connecté avec succès ({latencyMs}ms)',
   'onboarding.remoteConnection.status.authWarning': 'Le serveur nécessite une authentification. Vous pouvez toujours vous connecter.',
+  'onboarding.remoteConnection.actions.signInWithBrowser': 'Se connecter dans le navigateur',
+  'onboarding.remoteConnection.status.browserSignInHint': 'Terminez la connexion dans votre navigateur. L\'application se connecte ensuite.',
   'onboarding.remoteConnection.status.connectionFailed': 'Échec de la connexion',
   'onboarding.remoteConnection.status.suggestionsUnreachable': 'Suggestions : vérifiez l\'adresse du serveur, vérifiez que le serveur est en cours d\'exécution ou vérifiez votre connexion réseau.',
   'onboarding.remoteConnection.status.suggestionsWrongService': 'Suggestions : vérifiez que l’URL pointe vers un serveur OpenChamber ou contactez l\'administrateur du serveur.',

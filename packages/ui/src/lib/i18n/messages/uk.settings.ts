@@ -337,6 +337,8 @@ export const settingsDict = {
   "settings.remoteInstances.direct.headers.actions.add": "Add header",
   "settings.remoteInstances.direct.headers.removeAria": "Remove header",
   "settings.remoteInstances.direct.actions.add": "Додати сервер",
+  'settings.remoteInstances.direct.actions.signInWithBrowser': 'Увійти в браузері',
+  'settings.remoteInstances.direct.error.signInUnavailable': 'Цей сервер не вимагає входу в браузері.',
   "settings.remoteInstances.direct.import.description": "Вставте посилання для підключення з іншого сервера OpenChamber.",
   "settings.remoteInstances.direct.import.placeholder": "openchamber://connect?...",
   "settings.remoteInstances.direct.import.action": "Імпортувати посилання",
