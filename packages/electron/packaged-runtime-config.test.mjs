@@ -28,7 +28,12 @@ describe('packaged runtime config injection', () => {
 });
 
 describe('runtime config script', () => {
-  const VALUES = { localOrigin: 'http://127.0.0.1:1', apiBaseUrl: 'http://127.0.0.1:2', clientToken: 'value' };
+  const VALUES = {
+    localOrigin: 'http://127.0.0.1:1',
+    apiBaseUrl: 'http://127.0.0.1:2',
+    clientToken: 'value',
+    requestHeaders: { 'X-Oc-Hosting-Token': 'geheim' },
+  };
   const run = (globals) => {
     const window = { ...globals };
     vm.runInNewContext(RUNTIME_CONFIG_SCRIPT, { window });
@@ -40,6 +45,20 @@ describe('runtime config script', () => {
     assert.equal(window.__OPENCHAMBER_LOCAL_ORIGIN__, VALUES.localOrigin);
     assert.equal(window.__OPENCHAMBER_API_BASE_URL__, VALUES.apiBaseUrl);
     assert.equal(window.__OPENCHAMBER_CLIENT_TOKEN__, VALUES.clientToken);
+    assert.deepEqual(window.__OPENCHAMBER_RUNTIME_HEADERS__, VALUES.requestHeaders);
+  });
+
+  it('keeps runtime headers the preload exposed for this window', () => {
+    const window = run({
+      __OPENCHAMBER_READ_RUNTIME_CONFIG__: () => VALUES,
+      __OPENCHAMBER_RUNTIME_HEADERS__: { 'X-Other': '1' },
+    });
+    assert.deepEqual(window.__OPENCHAMBER_RUNTIME_HEADERS__, { 'X-Other': '1' });
+  });
+
+  it('leaves runtime headers unset when the host names none', () => {
+    const window = run({ __OPENCHAMBER_READ_RUNTIME_CONFIG__: () => ({ ...VALUES, requestHeaders: {} }) });
+    assert.equal(window.__OPENCHAMBER_RUNTIME_HEADERS__, undefined);
   });
 
   it('keeps the values the preload exposed for this window', () => {

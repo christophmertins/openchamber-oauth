@@ -5951,6 +5951,9 @@ ipcMain.on('openchamber:read-runtime-config', (event) => {
       localOrigin: state.localOrigin || state.sidecarUrl || '',
       apiBaseUrl: state.apiBaseUrl || state.sidecarUrl || '',
       clientToken: state.clientToken || '',
+      // A host reached with a custom header gets it before the app's first
+      // session check; the init script arrives later, on dom-ready.
+      requestHeaders: sanitizeRuntimeRequestHeaders(state.requestHeaders || {}),
     }
     : null;
 });
