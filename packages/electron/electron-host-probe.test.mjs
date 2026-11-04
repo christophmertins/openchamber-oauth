@@ -272,3 +272,30 @@ test('follows a redirect without the stored credential', async () => {
   assert.equal(followHeaders.length, 1);
   assert.equal(followHeaders[0]['X-Oc-Hosting-Token'], undefined);
 });
+
+test('bypasses the HTTP cache on the probe requests', async () => {
+  const modes = [];
+  const result = await baseProbe({
+    chromiumFetch: async (url, options) => {
+      modes.push([new URL(url).pathname, options.cache]);
+      return url.endsWith('/api/version') ? response(200, compatibleVersion) : response(200, {});
+    },
+  });
+
+  assert.equal(result.status, 'ok');
+  assert.deepEqual(modes, [
+    ['/api/version', 'no-store'],
+    ['/auth/session', 'no-store'],
+  ]);
+});
+
+test('treats a revalidated 304 as reachable', async () => {
+  const result = await baseProbe({
+    chromiumFetch: async (url) => url.endsWith('/api/version')
+      ? response(304)
+      : response(304),
+  });
+
+  assert.equal(result.status, 'ok');
+  assert.equal(result.authUrl, undefined);
+});

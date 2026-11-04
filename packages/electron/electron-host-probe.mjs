@@ -93,6 +93,10 @@ export const probeElectronHostWithDeadline = async ({
       headers,
       signal: controller.signal,
       redirect,
+      // Chromium's cache answers these tiny probes with a conditional request
+      // and a 304 without a body, which is not `ok` and looked unreachable at
+      // startup. A probe wants the server's current answer, never a revalidation.
+      cache: 'no-store',
     });
     if (controller.signal.aborted) {
       await discardBody(response);
@@ -108,7 +112,9 @@ export const probeElectronHostWithDeadline = async ({
   const fetchCredentialed = async (requestUrl, headers) => {
     try {
       const response = await fetchProbe(requestUrl, headers, { redirect: 'manual' });
-      return { response, redirected: response.status >= 300 && response.status < 400 };
+      // 304 is a cache revalidation, not a redirect, even though it is a 3xx.
+      const redirected = response.status >= 300 && response.status < 400 && response.status !== 304;
+      return { response, redirected };
     } catch (error) {
       // Electron 43 rejects manual redirects instead of returning the 3xx.
       if (error instanceof Error && error.message === 'Redirect was cancelled') {
@@ -167,10 +173,16 @@ export const probeElectronHostWithDeadline = async ({
       }
     } else {
       const versionResponse = versionProbe.response;
-      if (versionResponse.status === 401 || versionResponse.status === 403) return authResult();
-      if (!versionResponse.ok) return result('unreachable');
-      const versionStatus = classifyVersionPayload(await versionResponse.json().catch(() => null));
-      if (versionStatus !== 'ok') return result(versionStatus);
+      // A 304 has no body to classify. It still proves the server is there, and
+      // the session check below decides whether the credential is accepted.
+      if (versionResponse.status === 304) {
+        // No version check on a revalidated answer.
+      } else {
+        if (versionResponse.status === 401 || versionResponse.status === 403) return authResult();
+        if (!versionResponse.ok) return result('unreachable');
+        const versionStatus = classifyVersionPayload(await versionResponse.json().catch(() => null));
+        if (versionStatus !== 'ok') return result(versionStatus);
+      }
     }
 
     const sessionProbe = await fetchCredentialed(sessionUrl, headers);
@@ -182,6 +194,8 @@ export const probeElectronHostWithDeadline = async ({
       return authResult(followed.url);
     }
     const sessionResponse = sessionProbe.response;
+    // A revalidated session means the previous 200 answer still stands.
+    if (sessionResponse.status === 304) return result('ok');
     if (sessionResponse.status === 401 || sessionResponse.status === 403) return authResult();
     if (!sessionResponse.ok) return result('unreachable');
     return result('ok');
