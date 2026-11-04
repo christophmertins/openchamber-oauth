@@ -227,3 +227,22 @@ test('keeps a redirected version payload that is valid as a normal probe', async
   assert.equal(result.status, 'ok');
   assert.equal(result.authUrl, undefined);
 });
+
+test('follows redirects on the application probes and keeps the identity check manual', async () => {
+  const modes = [];
+  const result = await baseProbe({
+    expectedServerId: 'server-1',
+    chromiumFetch: async (url, options) => {
+      modes.push([new URL(url).pathname, options.redirect]);
+      if (url.endsWith('/health')) return response(200, { serverId: 'server-1' });
+      return url.endsWith('/api/version') ? response(200, compatibleVersion) : response(200, {});
+    },
+  });
+
+  assert.equal(result.status, 'ok');
+  assert.deepEqual(modes, [
+    ['/health', 'manual'],
+    ['/api/version', 'follow'],
+    ['/auth/session', 'follow'],
+  ]);
+});

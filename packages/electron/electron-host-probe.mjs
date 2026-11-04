@@ -83,12 +83,12 @@ export const probeElectronHostWithDeadline = async ({
   const discardBody = async (response) => {
     if (response.body && !response.body.locked) await response.body.cancel().catch(() => {});
   };
-  const fetchProbe = async (requestUrl, headers) => {
+  const fetchProbe = async (requestUrl, headers, { redirect = 'manual' } = {}) => {
     controller.signal.throwIfAborted();
     const response = await chromiumFetch(requestUrl, {
       headers,
       signal: controller.signal,
-      redirect: 'manual',
+      redirect,
     });
     if (controller.signal.aborted) {
       await discardBody(response);
@@ -126,9 +126,11 @@ export const probeElectronHostWithDeadline = async ({
     const token = optionalIdentity.parse(clientToken);
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    const versionResponse = await fetchProbe(versionUrl, headers);
+    const versionResponse = await fetchProbe(versionUrl, headers, { redirect: 'follow' });
     if (versionResponse.status === 401 || versionResponse.status === 403) return authResult(versionResponse, versionUrl);
-    if (!versionResponse.ok) return result('unreachable');
+    if (!versionResponse.ok) {
+      return versionResponse.redirected ? authResult(versionResponse, versionUrl) : result('unreachable');
+    }
     const versionStatus = classifyVersionPayload(await versionResponse.json().catch(() => null));
     if (versionStatus !== 'ok') {
       // A proxy that guards every path forwards /api/version to its login page;
@@ -137,7 +139,7 @@ export const probeElectronHostWithDeadline = async ({
       return versionResponse.redirected ? authResult(versionResponse, versionUrl) : result(versionStatus);
     }
 
-    const sessionResponse = await fetchProbe(sessionUrl, headers);
+    const sessionResponse = await fetchProbe(sessionUrl, headers, { redirect: 'follow' });
     if (sessionResponse.status === 401 || sessionResponse.status === 403) return authResult(sessionResponse, sessionUrl);
     if (sessionResponse.redirected) return authResult(sessionResponse, sessionUrl);
     if (!sessionResponse.ok) return result('unreachable');
