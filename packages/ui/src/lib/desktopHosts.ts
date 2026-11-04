@@ -351,7 +351,7 @@ export const getDesktopHostApiUrl = (host: DesktopHost): string => {
   return normalizeHostUrl(host.apiUrl || host.url) || host.apiUrl || host.url;
 };
 
-export type HostCredential = { url: string; token: string; header?: string; label?: string };
+type HostCredential = { url: string; token: string; header?: string; label?: string };
 
 /**
  * A browser sign-in names one server and one credential. An address that is
@@ -362,7 +362,7 @@ export const mergeHostCredential = (
   hosts: DesktopHost[],
   credential: HostCredential,
   newId: string,
-): { hosts: DesktopHost[]; hostId: string } => {
+) => {
   const url = normalizeHostUrl(credential.url);
   if (!url) throw new Error('invalid-host-address');
   const header = credential.header?.trim() || '';
@@ -371,26 +371,20 @@ export const mergeHostCredential = (
   const existingIndex = hosts.findIndex((host) => normalizeHostUrl(getDesktopHostApiUrl(host)) === url);
 
   if (existingIndex === -1) {
-    const host: DesktopHost = {
-      id: newId,
-      label: label || url,
-      url,
-      apiUrl: url,
-      ...(bearer
-        ? { clientToken: credential.token }
-        : { requestHeaders: { [header]: credential.token } }),
-    };
+    const host: DesktopHost = { id: newId, label: label || url, url, apiUrl: url };
+    if (bearer) host.clientToken = credential.token;
+    else host.requestHeaders = { [header]: credential.token };
     return { hosts: [...hosts, host], hostId: newId };
   }
 
   const existing = hosts[existingIndex];
-  const next: DesktopHost = {
-    ...existing,
-    ...(label ? { label } : {}),
-    ...(bearer
-      ? { clientToken: credential.token }
-      : { requestHeaders: { ...(existing.requestHeaders || {}), [header]: credential.token } }),
-  };
+  const next: DesktopHost = { ...existing };
+  if (label) next.label = label;
+  if (bearer) {
+    next.clientToken = credential.token;
+  } else {
+    next.requestHeaders = { ...(existing.requestHeaders || {}), [header]: credential.token };
+  }
   return {
     hosts: hosts.map((host, index) => (index === existingIndex ? next : host)),
     hostId: existing.id,
@@ -604,9 +598,13 @@ export const desktopHostProbe = async (url: string, options?: { clientToken?: st
       : 'unreachable';
 
   const latencyMs = readNumber(raw, 'latencyMs') ?? readNumber(raw, 'latency_ms') ?? 0;
+  const result: HostProbeResult = { status, latencyMs };
   // Only a sign-in answer carries a URL; anything else is not a page to open.
-  const authUrl = status === 'auth' ? (readString(raw, 'authUrl') || readString(raw, 'auth_url')) : '';
-  return { status, latencyMs, ...(authUrl ? { authUrl } : {}) };
+  if (status === 'auth') {
+    const authUrl = readString(raw, 'authUrl') || readString(raw, 'auth_url');
+    if (authUrl) result.authUrl = authUrl;
+  }
+  return result;
 };
 
 const remoteHostUpdateResult = z.discriminatedUnion('status', [

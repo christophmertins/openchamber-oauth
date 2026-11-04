@@ -2153,13 +2153,14 @@ const dispatchDeepLink = (link) => {
         log.info('[electron] host credential deep-link declined by user');
         return;
       }
-      queueHostAction({
+      const action = {
         type: 'credential',
         url: credential.url,
         token: credential.token,
-        ...(credential.header ? { header: credential.header } : {}),
-        ...(credential.label ? { label: credential.label } : {}),
-      });
+      };
+      if (credential.header) action.header = credential.header;
+      if (credential.label) action.label = credential.label;
+      queueHostAction(action);
     });
     return;
   }

@@ -2,7 +2,7 @@
 // login page and, once the user is signed in, produces an
 // openchamber://connect-host link instead of landing on the web UI. Pages that
 // do not know it ignore the parameter.
-export const DESKTOP_SIGN_IN_MARKER = 'openchamber_desktop';
+const DESKTOP_SIGN_IN_MARKER = 'openchamber_desktop';
 
 /** @returns the URL to open, or null when it is not something a browser may load. */
 export const withDesktopSignInMarker = (url: string): string | null => {
