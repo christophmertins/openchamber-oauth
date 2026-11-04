@@ -4,6 +4,7 @@ import {
   clearRuntimeAuthCredentialProvider,
   clearRuntimeUrlAuthToken,
   getRuntimeBearerTokenSync,
+  getRuntimeExtraHeadersSync,
   refreshRuntimeUrlAuthToken,
   refreshLocalRuntimeUrlAuthToken,
   getLocalRuntimeUrlAuthTokenSync,
@@ -12,6 +13,11 @@ import {
   setRuntimeExtraHeaders,
 } from './runtime-auth';
 import { createRuntimeUrlResolver } from './runtime-url';
+
+interface FakeRuntimeWindow {
+  __OPENCHAMBER_READ_RUNTIME_HEADERS__: () => Record<string, string>;
+  __OPENCHAMBER_RUNTIME_HEADERS__?: Record<string, string>;
+}
 
 describe('runtime auth headers', () => {
   test('does not add authorization by default', async () => {
@@ -221,4 +227,21 @@ describe('runtime auth headers', () => {
       clearRuntimeUrlAuthToken();
     }
   });
+});
+
+test('reads host request headers from the shell when the boot script did not set them', () => {
+  setRuntimeExtraHeaders(null);
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+  const fakeWindow: FakeRuntimeWindow = {
+    __OPENCHAMBER_READ_RUNTIME_HEADERS__: () => ({ 'X-Oc-Hosting-Token': 'geheim' }),
+  };
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: fakeWindow });
+  try {
+    expect(getRuntimeExtraHeadersSync()).toEqual({ 'X-Oc-Hosting-Token': 'geheim' });
+    expect(fakeWindow.__OPENCHAMBER_RUNTIME_HEADERS__).toEqual({ 'X-Oc-Hosting-Token': 'geheim' });
+  } finally {
+    if (previousWindow) Object.defineProperty(globalThis, 'window', previousWindow);
+    else Reflect.deleteProperty(globalThis, 'window');
+    setRuntimeExtraHeaders(null);
+  }
 });

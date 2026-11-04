@@ -90,6 +90,15 @@ describe('runtime config frame check', () => {
     assert.equal(isRuntimeConfigFrame({ parent: null, origin: 'http://127.0.0.1:3000' }), false);
     assert.equal(isRuntimeConfigFrame({ parent: null, origin: 'null' }), false);
     assert.equal(isRuntimeConfigFrame(null), false);
+    // A packaged document whose origin is opaque still belongs to the app.
+    assert.equal(
+      isRuntimeConfigFrame({ parent: null, origin: 'null', url: 'openchamber-ui://app/index.html' }),
+      true,
+    );
+    assert.equal(
+      isRuntimeConfigFrame({ parent: null, origin: 'null', url: 'https://evil.example/' }),
+      false,
+    );
   });
 
   it('refuses a frame that is already gone', () => {

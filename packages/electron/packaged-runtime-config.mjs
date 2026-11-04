@@ -63,7 +63,10 @@ export const createRuntimeConfigGate = () => {
 /** Only the top frame of a window, showing the packaged application itself. */
 export const isRuntimeConfigFrame = (frame) => {
   try {
-    return Boolean(frame) && frame.parent === null && frame.origin === PACKAGED_UI_ORIGIN;
+    if (!frame || frame.parent !== null) return false;
+    if (frame.origin === PACKAGED_UI_ORIGIN) return true;
+    // A packaged document can report an opaque origin; its URL is still ours.
+    return String(frame.url || '').startsWith(`${PACKAGED_UI_ORIGIN}/`);
   } catch {
     // Reading a frame that is already gone throws.
     return false;

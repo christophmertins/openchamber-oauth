@@ -132,8 +132,22 @@ export const setRuntimeExtraHeaders = (headers: Record<string, string> | null | 
 export const getRuntimeExtraHeadersSync = (): Record<string, string> => {
   if (Object.keys(runtimeExtraHeaders).length > 0) return runtimeExtraHeaders;
   if (typeof window === 'undefined') return {};
-  const injected = (window as typeof window & { __OPENCHAMBER_RUNTIME_HEADERS__?: Record<string, string> }).__OPENCHAMBER_RUNTIME_HEADERS__;
-  return injected && typeof injected === 'object' ? sanitizeRuntimeExtraHeaders(injected) : {};
+  const runtimeWindow = window as typeof window & {
+    __OPENCHAMBER_RUNTIME_HEADERS__?: Record<string, string>;
+    __OPENCHAMBER_READ_RUNTIME_HEADERS__?: () => Record<string, string>;
+  };
+  const injected = runtimeWindow.__OPENCHAMBER_RUNTIME_HEADERS__;
+  if (injected && typeof injected === 'object') return sanitizeRuntimeExtraHeaders(injected);
+  // Before the boot script delivered its values, ask the shell directly. A host
+  // reached with a custom header must have it on the first session check.
+  if (!runtimeWindow.__OPENCHAMBER_READ_RUNTIME_HEADERS__) return {};
+  try {
+    const fromShell = sanitizeRuntimeExtraHeaders(runtimeWindow.__OPENCHAMBER_READ_RUNTIME_HEADERS__());
+    runtimeWindow.__OPENCHAMBER_RUNTIME_HEADERS__ = fromShell;
+    return fromShell;
+  } catch {
+    return {};
+  }
 };
 
 export const getRuntimeBearerTokenSync = (): string => runtimeBearerToken || readInjectedBearerToken();

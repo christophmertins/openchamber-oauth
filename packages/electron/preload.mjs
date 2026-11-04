@@ -69,8 +69,20 @@ if (clientToken && isLocalPage) {
 
 // A window created before startup resolved has none of the values above in its
 // arguments, so the packaged document asks main for them (packaged-runtime-config.mjs).
-if (currentOrigin === 'openchamber-ui://app') {
+const isPackagedDocument = currentOrigin === 'openchamber-ui://app'
+  || location.protocol === 'openchamber-ui:';
+if (isPackagedDocument) {
   contextBridge.exposeInMainWorld('__OPENCHAMBER_READ_RUNTIME_CONFIG__', () => ipcRenderer.sendSync('openchamber:read-runtime-config'));
+  // The document asks for its runtime values while parsing; a host reached with
+  // a custom header needs that header before the first session check.
+  contextBridge.exposeInMainWorld('__OPENCHAMBER_READ_RUNTIME_HEADERS__', () => {
+    try {
+      const config = ipcRenderer.sendSync('openchamber:read-runtime-config');
+      return config && config.requestHeaders ? config.requestHeaders : {};
+    } catch {
+      return {};
+    }
+  });
 }
 
 // Which saved host this window should connect to over the relay-capable path
