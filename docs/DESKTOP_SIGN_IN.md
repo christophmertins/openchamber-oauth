@@ -68,7 +68,10 @@ A minimal page after the login finished:
     header: 'X-Oc-Hosting-Token',
     label: 'Work environment',
   };
-  const link = 'openchamber://connect-host?d=' + btoa(JSON.stringify(payload))
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  const link = 'openchamber://connect-host?d=' + btoa(binary)
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   document.getElementById('open').href = link;
   // The click is what browsers may require; the automatic attempt comes first.

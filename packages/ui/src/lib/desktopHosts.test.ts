@@ -333,3 +333,17 @@ test('keeps a host label when the link names none', () => {
   const { hosts } = mergeHostCredential(existing, { url: 'https://oc.example.com', token: 't', label: '' }, 'host-new');
   expect(hosts[0].label).toBe('Home');
 });
+
+test('matches a stored host saved with a trailing slash and different case', () => {
+  const existing = [{ id: 'host-old', label: 'Old', url: 'https://OC.example.com/', apiUrl: 'https://OC.example.com/' }];
+  const { hosts, hostId } = mergeHostCredential(existing, { url: 'https://oc.example.com', token: 't', header: 'X-Oc-Hosting-Token' }, 'host-new');
+  expect(hostId).toBe('host-old');
+  expect(hosts).toHaveLength(1);
+});
+
+test('a header credential clears a stale bearer token', () => {
+  const existing = [{ id: 'host-old', label: 'Old', url: 'https://oc.example.com/', clientToken: 'stale' }];
+  const { hosts } = mergeHostCredential(existing, { url: 'https://oc.example.com', token: 't', header: 'X-Oc-Hosting-Token' }, 'host-new');
+  expect(hosts[0].clientToken).toBeUndefined();
+  expect(hosts[0].requestHeaders).toEqual({ 'X-Oc-Hosting-Token': 't' });
+});

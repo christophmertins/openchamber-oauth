@@ -353,6 +353,19 @@ export const getDesktopHostApiUrl = (host: DesktopHost): string => {
 
 type HostCredential = { url: string; token: string; header?: string; label?: string };
 
+// The shell stores addresses through `new URL(...).toString()` (trailing slash,
+// lowercased host), while a handover link carries the address as typed. Compare
+// canonically or every repeat sign-in adds a second entry.
+const canonicalAddress = (value: string): string | null => {
+  const normalized = normalizeHostUrl(value);
+  if (!normalized) return null;
+  try {
+    return new URL(normalized).toString();
+  } catch {
+    return null;
+  }
+};
+
 /**
  * A browser sign-in names one server and one credential. An address that is
  * already saved is updated in place (its id and other transports stay), and
@@ -368,7 +381,9 @@ export const mergeHostCredential = (
   const header = credential.header?.trim() || '';
   const bearer = !header || header.toLowerCase() === 'authorization';
   const label = credential.label?.trim() || '';
-  const existingIndex = hosts.findIndex((host) => normalizeHostUrl(getDesktopHostApiUrl(host)) === url);
+  const address = canonicalAddress(credential.url);
+  if (!address) throw new Error('invalid-host-address');
+  const existingIndex = hosts.findIndex((host) => canonicalAddress(getDesktopHostApiUrl(host)) === address);
 
   if (existingIndex === -1) {
     const host: DesktopHost = { id: newId, label: label || url, url, apiUrl: url };
@@ -383,6 +398,9 @@ export const mergeHostCredential = (
   if (bearer) {
     next.clientToken = credential.token;
   } else {
+    // The new credential is the authority for this host; a stale bearer would
+    // otherwise decide the server's answer on its own and hide the header.
+    delete next.clientToken;
     next.requestHeaders = { ...(existing.requestHeaders || {}), [header]: credential.token };
   }
   return {

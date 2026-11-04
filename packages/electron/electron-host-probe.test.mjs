@@ -195,54 +195,80 @@ test('aborts requests and cancels unused bodies before clearing the timer', asyn
   assert.deepEqual(events, ['aborted', 'body-cancelled', 'timer-cleared']);
 });
 
-test('reports the sign-in URL when /auth/session ends on a login page', async () => {
+
+test('reports the sign-in URL when a credentialed probe is redirected', async () => {
   const result = await baseProbe({
-    chromiumFetch: async (url) => url.endsWith('/api/version')
-      ? response(200, compatibleVersion)
-      : { ...response(200, {}), redirected: true, url: 'https://login.example/sign-in?returnTo=opaque' },
+    chromiumFetch: async (url, options) => {
+      if (url.endsWith('/api/version')) return response(200, compatibleVersion);
+      if (options.redirect === 'follow') {
+        return { ...response(200, null), redirected: true, url: 'https://login.example/sign-in?returnTo=opaque' };
+      }
+      throw new Error('Redirect was cancelled');
+    },
   });
 
   assert.equal(result.status, 'auth');
   assert.equal(result.authUrl, 'https://login.example/sign-in?returnTo=opaque');
 });
 
-test('reports auth for a 401 on the version endpoint with the requested URL', async () => {
+test('reports a plain 401 without a sign-in URL', async () => {
   const result = await baseProbe({
     chromiumFetch: async (url) => url.endsWith('/api/version')
-      ? { ...response(401), url: 'https://instance.example/api/version' }
+      ? response(401)
       : response(200, {}),
   });
 
   assert.equal(result.status, 'auth');
-  assert.equal(result.authUrl, 'https://instance.example/api/version');
+  assert.equal(result.authUrl, undefined);
 });
 
-test('keeps a redirected version payload that is valid as a normal probe', async () => {
+test('keeps a canonical redirect whose final answer is a valid session', async () => {
   const result = await baseProbe({
-    chromiumFetch: async (url) => url.endsWith('/api/version')
-      ? { ...response(200, compatibleVersion), redirected: true, url: 'https://instance.example/api/version' }
-      : response(200, {}),
+    chromiumFetch: async (url, options) => {
+      if (url.endsWith('/api/version')) return response(200, compatibleVersion);
+      if (options.redirect === 'follow') {
+        return { ...response(200, { authenticated: true }), redirected: true, url: 'https://instance.example/auth/session/' };
+      }
+      throw new Error('Redirect was cancelled');
+    },
   });
 
   assert.equal(result.status, 'ok');
   assert.equal(result.authUrl, undefined);
 });
 
-test('follows redirects on the application probes and keeps the identity check manual', async () => {
-  const modes = [];
+test('keeps a redirected version payload that is valid as a normal probe', async () => {
   const result = await baseProbe({
-    expectedServerId: 'server-1',
     chromiumFetch: async (url, options) => {
-      modes.push([new URL(url).pathname, options.redirect]);
-      if (url.endsWith('/health')) return response(200, { serverId: 'server-1' });
-      return url.endsWith('/api/version') ? response(200, compatibleVersion) : response(200, {});
+      if (url.endsWith('/api/version')) {
+        if (options.redirect === 'follow') {
+          return { ...response(200, compatibleVersion), redirected: true, url: 'https://instance.example/api/version/' };
+        }
+        throw new Error('Redirect was cancelled');
+      }
+      return response(200, {});
     },
   });
 
   assert.equal(result.status, 'ok');
-  assert.deepEqual(modes, [
-    ['/health', 'manual'],
-    ['/api/version', 'follow'],
-    ['/auth/session', 'follow'],
-  ]);
+  assert.equal(result.authUrl, undefined);
+});
+
+test('follows a redirect without the stored credential', async () => {
+  const followHeaders = [];
+  const result = await baseProbe({
+    requestHeaders: { 'X-Oc-Hosting-Token': 'stale' },
+    chromiumFetch: async (url, options) => {
+      if (url.endsWith('/api/version')) return response(200, compatibleVersion);
+      if (options.redirect === 'follow') {
+        followHeaders.push(options.headers);
+        return { ...response(401), redirected: true, url: 'https://login.example/sign-in' };
+      }
+      throw new Error('Redirect was cancelled');
+    },
+  });
+
+  assert.equal(result.status, 'auth');
+  assert.equal(followHeaders.length, 1);
+  assert.equal(followHeaders[0]['X-Oc-Hosting-Token'], undefined);
 });

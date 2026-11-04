@@ -18,9 +18,10 @@ only has to open the browser and take the credential back.
 2. The probe reports that the server needs a sign-in, with the URL to open.
 3. Clicks "Sign in in browser". The system browser opens at the login URL.
 4. Signs in there. The page that finishes the login hands the app a host link.
-5. The app asks for confirmation (server address and label) and stores the host.
-   The runtime switches to it in place.
-6. After a restart the host connects with the stored credential, with no browser.
+5. The app asks for confirmation (server address and label), stores the host as
+   the default, and restarts onto it.
+6. After that restart, and every later start, the host connects with the stored
+   credential, with no browser.
 
 ## Non-goals
 
@@ -37,7 +38,7 @@ only has to open the browser and take the credential back.
   page that supports the flow reads the marker and, after authenticating,
   continues to a handover page instead of its normal landing page.
 - The handover page links to
-  `openchamber://host?d=<base64url JSON>`, with
+  `openchamber://connect-host?d=<base64url JSON>`, with
   `{ v: 1, url, header?, token, label? }`.
   `url` is the server address the app should store. `token` goes into
   `requestHeaders[header]`, or into `clientToken` when `header` is missing or
@@ -82,9 +83,9 @@ only has to open the browser and take the credential back.
 **Renderer** (`packages/ui`)
 
 - `desktopHostActions.ts` handles the new action: upsert a host by address with
-  the token or header, make it the default only when no default is set, then
-  activate it with `switchRuntimeEndpoint`, as relay activation already does.
-  No restart is needed; the switch happens in place.
+  the token or header, make it the default, and restart. The next boot reads the
+  credential from the hosts file, so the restart is also the proof that the
+  sign-in survives one.
 - `RemoteConnectionForm` and the auth gate show "Sign in in browser" when the
   probe reports `auth` with an `authUrl`, open it with `openExternalUrl`, and
   show a waiting state until the host action runs.
@@ -92,8 +93,10 @@ only has to open the browser and take the credential back.
 
 **Tests**
 
-- Probe: redirect to a login page yields `auth` + `authUrl`; unrelated 3xx still
-  classifies as before.
+- Probe: a redirect to a login page yields `auth` + `authUrl`; a plain 401 on a
+  password server yields `auth` without a URL; a canonical redirect that ends on
+  a valid payload stays `ok`. The redirect is followed without the stored
+  credential.
 - Deep link: valid payload parses; oversized payload, `http:` address in a
   non-loopback host, invalid header name, missing token are rejected.
 - Host action: upsert keeps an existing default, adds the header or bearer token

@@ -2236,8 +2236,16 @@ const handleDeepLinks = (urls) => {
   }
 };
 
-const extractInitialDeepLinks = () =>
-  process.argv.filter((arg) => typeof arg === 'string' && arg.startsWith(`${DEEP_LINK_PROTOCOL}://`));
+const extractInitialDeepLinks = () => {
+  const links = process.argv.filter((arg) => typeof arg === 'string' && arg.startsWith(`${DEEP_LINK_PROTOCOL}://`));
+  if (links.length > 0) {
+    // app.relaunch() and relaunchAfterExit() reuse process.argv. A link handled
+    // at this start must not be replayed by the restart a sign-in triggers, or
+    // the confirmation dialog returns forever.
+    process.argv = process.argv.filter((arg) => !links.includes(arg));
+  }
+  return links;
+};
 
 const dispatchDomEventToWindow = (browserWindow, event, detail) => {
   if (!browserWindow || browserWindow.isDestroyed()) return;

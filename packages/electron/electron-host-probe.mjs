@@ -60,9 +60,13 @@ export const probeElectronHostWithDeadline = async ({
   const started = now();
   const result = (status) => ({ status, latencyMs: now() - started });
   // A sign-in page in front of the server answers the probes instead of it. The
-  // URL is what the user's browser has to open; without it the UI can only say
-  // "auth" and has nowhere to send them.
-  const authResult = (response, fallbackUrl) => ({ ...result('auth'), authUrl: response?.url || fallbackUrl });
+  // URL is what the user's browser has to open; only a redirect names one. A
+  // plain 401 on a password server has no page to open.
+  const authResult = (authUrl = '') => {
+    const auth = result('auth');
+    if (authUrl) auth.authUrl = authUrl;
+    return auth;
+  };
   if (!isReady()) return result('unreachable');
 
   const versionUrl = buildProbeUrl(url, '/api/version');
@@ -98,6 +102,32 @@ export const probeElectronHostWithDeadline = async ({
     return response;
   };
 
+  // The stored credential must not travel to whatever origin a sign-in proxy
+  // redirects to. The credentialed attempt never follows; when it is stopped by
+  // a redirect, the final answer is fetched again without credentials.
+  const fetchCredentialed = async (requestUrl, headers) => {
+    try {
+      const response = await fetchProbe(requestUrl, headers, { redirect: 'manual' });
+      return { response, redirected: response.status >= 300 && response.status < 400 };
+    } catch (error) {
+      // Electron 43 rejects manual redirects instead of returning the 3xx.
+      if (error instanceof Error && error.message === 'Redirect was cancelled') {
+        return { redirected: true };
+      }
+      throw error;
+    }
+  };
+
+  const followWithoutCredentials = async (requestUrl) => {
+    const response = await fetchProbe(requestUrl, { Accept: 'application/json' }, { redirect: 'follow' });
+    return {
+      url: response.url || requestUrl,
+      ok: response.ok,
+      payload: await response.json().catch(() => null),
+      redirected: response.redirected === true,
+    };
+  };
+
   const run = async () => {
     const expectedIdentity = optionalIdentity.parse(expectedServerId);
     if (expectedIdentity) {
@@ -126,22 +156,33 @@ export const probeElectronHostWithDeadline = async ({
     const token = optionalIdentity.parse(clientToken);
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    const versionResponse = await fetchProbe(versionUrl, headers, { redirect: 'follow' });
-    if (versionResponse.status === 401 || versionResponse.status === 403) return authResult(versionResponse, versionUrl);
-    if (!versionResponse.ok) {
-      return versionResponse.redirected ? authResult(versionResponse, versionUrl) : result('unreachable');
-    }
-    const versionStatus = classifyVersionPayload(await versionResponse.json().catch(() => null));
-    if (versionStatus !== 'ok') {
-      // A proxy that guards every path forwards /api/version to its login page;
-      // the payload then fails the version check and the redirect is the
-      // authoritative "sign in here".
-      return versionResponse.redirected ? authResult(versionResponse, versionUrl) : result(versionStatus);
+    const versionProbe = await fetchCredentialed(versionUrl, headers);
+    if (versionProbe.redirected) {
+      // A proxy that guards every path forwards /api/version to its login page.
+      // A canonical redirect with a valid payload behind it still counts, and
+      // that answer is fetched without the credential.
+      const followed = await followWithoutCredentials(versionUrl);
+      if (!(followed.ok && classifyVersionPayload(followed.payload) === 'ok')) {
+        return authResult(followed.url);
+      }
+    } else {
+      const versionResponse = versionProbe.response;
+      if (versionResponse.status === 401 || versionResponse.status === 403) return authResult();
+      if (!versionResponse.ok) return result('unreachable');
+      const versionStatus = classifyVersionPayload(await versionResponse.json().catch(() => null));
+      if (versionStatus !== 'ok') return result(versionStatus);
     }
 
-    const sessionResponse = await fetchProbe(sessionUrl, headers, { redirect: 'follow' });
-    if (sessionResponse.status === 401 || sessionResponse.status === 403) return authResult(sessionResponse, sessionUrl);
-    if (sessionResponse.redirected) return authResult(sessionResponse, sessionUrl);
+    const sessionProbe = await fetchCredentialed(sessionUrl, headers);
+    if (sessionProbe.redirected) {
+      // A sign-in page answers with HTML; a canonical redirect ends on the
+      // session JSON and is not a sign-in prompt.
+      const followed = await followWithoutCredentials(sessionUrl);
+      if (followed.ok && followed.payload) return result('ok');
+      return authResult(followed.url);
+    }
+    const sessionResponse = sessionProbe.response;
+    if (sessionResponse.status === 401 || sessionResponse.status === 403) return authResult();
     if (!sessionResponse.ok) return result('unreachable');
     return result('ok');
   };
