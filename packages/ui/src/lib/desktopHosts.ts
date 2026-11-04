@@ -208,6 +208,8 @@ export type HostProbeResult = {
    * over its limits (too many devices at once, too many connects a minute). */
   status: 'ok' | 'auth' | 'update-recommended' | 'incompatible' | 'wrong-service' | 'unreachable' | 'relay-limit';
   latencyMs: number;
+  /** Sign-in page the browser has to open when the server asks for one. */
+  authUrl?: string;
 };
 
 type DesktopHostUrlResolution = {
@@ -556,7 +558,9 @@ export const desktopHostProbe = async (url: string, options?: { clientToken?: st
       : 'unreachable';
 
   const latencyMs = readNumber(raw, 'latencyMs') ?? readNumber(raw, 'latency_ms') ?? 0;
-  return { status, latencyMs };
+  // Only a sign-in answer carries a URL; anything else is not a page to open.
+  const authUrl = status === 'auth' ? (readString(raw, 'authUrl') || readString(raw, 'auth_url')) : '';
+  return { status, latencyMs, ...(authUrl ? { authUrl } : {}) };
 };
 
 const remoteHostUpdateResult = z.discriminatedUnion('status', [

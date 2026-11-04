@@ -59,6 +59,10 @@ export const probeElectronHostWithDeadline = async ({
 }) => {
   const started = now();
   const result = (status) => ({ status, latencyMs: now() - started });
+  // A sign-in page in front of the server answers the probes instead of it. The
+  // URL is what the user's browser has to open; without it the UI can only say
+  // "auth" and has nowhere to send them.
+  const authResult = (response, fallbackUrl) => ({ ...result('auth'), authUrl: response?.url || fallbackUrl });
   if (!isReady()) return result('unreachable');
 
   const versionUrl = buildProbeUrl(url, '/api/version');
@@ -123,13 +127,19 @@ export const probeElectronHostWithDeadline = async ({
     if (token) headers.Authorization = `Bearer ${token}`;
 
     const versionResponse = await fetchProbe(versionUrl, headers);
-    if (versionResponse.status === 401 || versionResponse.status === 403) return result('auth');
+    if (versionResponse.status === 401 || versionResponse.status === 403) return authResult(versionResponse, versionUrl);
     if (!versionResponse.ok) return result('unreachable');
     const versionStatus = classifyVersionPayload(await versionResponse.json().catch(() => null));
-    if (versionStatus !== 'ok') return result(versionStatus);
+    if (versionStatus !== 'ok') {
+      // A proxy that guards every path forwards /api/version to its login page;
+      // the payload then fails the version check and the redirect is the
+      // authoritative "sign in here".
+      return versionResponse.redirected ? authResult(versionResponse, versionUrl) : result(versionStatus);
+    }
 
     const sessionResponse = await fetchProbe(sessionUrl, headers);
-    if (sessionResponse.status === 401 || sessionResponse.status === 403) return result('auth');
+    if (sessionResponse.status === 401 || sessionResponse.status === 403) return authResult(sessionResponse, sessionUrl);
+    if (sessionResponse.redirected) return authResult(sessionResponse, sessionUrl);
     if (!sessionResponse.ok) return result('unreachable');
     return result('ok');
   };

@@ -194,3 +194,36 @@ test('aborts requests and cancels unused bodies before clearing the timer', asyn
   assert.equal(result.status, 'auth');
   assert.deepEqual(events, ['aborted', 'body-cancelled', 'timer-cleared']);
 });
+
+test('reports the sign-in URL when /auth/session ends on a login page', async () => {
+  const result = await baseProbe({
+    chromiumFetch: async (url) => url.endsWith('/api/version')
+      ? response(200, compatibleVersion)
+      : { ...response(200, {}), redirected: true, url: 'https://login.example/sign-in?returnTo=opaque' },
+  });
+
+  assert.equal(result.status, 'auth');
+  assert.equal(result.authUrl, 'https://login.example/sign-in?returnTo=opaque');
+});
+
+test('reports auth for a 401 on the version endpoint with the requested URL', async () => {
+  const result = await baseProbe({
+    chromiumFetch: async (url) => url.endsWith('/api/version')
+      ? { ...response(401), url: 'https://instance.example/api/version' }
+      : response(200, {}),
+  });
+
+  assert.equal(result.status, 'auth');
+  assert.equal(result.authUrl, 'https://instance.example/api/version');
+});
+
+test('keeps a redirected version payload that is valid as a normal probe', async () => {
+  const result = await baseProbe({
+    chromiumFetch: async (url) => url.endsWith('/api/version')
+      ? { ...response(200, compatibleVersion), redirected: true, url: 'https://instance.example/api/version' }
+      : response(200, {}),
+  });
+
+  assert.equal(result.status, 'ok');
+  assert.equal(result.authUrl, undefined);
+});
