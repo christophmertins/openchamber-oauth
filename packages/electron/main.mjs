@@ -66,7 +66,7 @@ import {
   usesFramelessChrome,
   wasEarlyWindowClosed,
 } from './early-startup.mjs';
-import { sanitizeRuntimeRequestHeaders } from './runtime-request-headers.mjs';
+import { hostRequestHeadersToAdd, sanitizeRuntimeRequestHeaders } from './runtime-request-headers.mjs';
 import {
   LOCAL_HOST_ID,
   buildStoredHostEntry,
@@ -1324,6 +1324,25 @@ const registerPackagedUiProtocol = () => {
     const html = await fsp.readFile(indexPath, 'utf8');
     const body = injectRuntimeConfigIntoHtml(html);
     return new Response(body, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+  });
+};
+
+// A renderer's first request can beat its runtime values on a cold start. The
+// shell knows each window's host and credential, so it adds the host's headers
+// at the network layer for requests to that host. A redirect to another origin
+// (a sign-in page) never matches and stays credential-free.
+const installHostRequestHeaderInjection = () => {
+  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    const requestHeaders = { ...details.requestHeaders };
+    const contents = details.webContentsId ? webContents.fromId(details.webContentsId) : null;
+    const windowConfig = contents ? BrowserWindow.fromWebContents(contents)?.__ocRuntimeConfig : null;
+    const apiBaseUrl = normalizeHostUrl(windowConfig?.apiBaseUrl || state.apiBaseUrl || '');
+    const storedHeaders = windowConfig?.requestHeaders || state.requestHeaders || {};
+    Object.assign(
+      requestHeaders,
+      hostRequestHeadersToAdd(details.url, apiBaseUrl, storedHeaders, Object.keys(requestHeaders)),
+    );
+    callback({ requestHeaders });
   });
 };
 
@@ -5976,6 +5995,8 @@ ipcMain.on('openchamber:read-runtime-config', (event) => {
       localOrigin: state.localOrigin || state.sidecarUrl || '',
       apiBaseUrl: state.apiBaseUrl || state.sidecarUrl || '',
       clientToken: state.clientToken || '',
+      // A host reached with a custom header needs it before the first session check.
+      requestHeaders: sanitizeRuntimeRequestHeaders(state.requestHeaders || {}),
     }
     : null;
 });
@@ -6394,6 +6415,7 @@ app.whenReady().then(async () => {
   nativeTheme.themeSource = readThemeSource();
   registerPackagedUiProtocol();
   hardenBrowserPanelSession();
+  installHostRequestHeaderInjection();
   setupAutoUpdater();
 
   applyApplicationMenu();

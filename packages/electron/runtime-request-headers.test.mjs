@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { sanitizeRuntimeRequestHeaders } from './runtime-request-headers.mjs';
+import { hostRequestHeadersToAdd, sanitizeRuntimeRequestHeaders } from './runtime-request-headers.mjs';
 
 describe('sanitizeRuntimeRequestHeaders', () => {
   test('preserves safe custom headers', () => {
@@ -22,5 +22,34 @@ describe('sanitizeRuntimeRequestHeaders', () => {
       Empty: '',
       Good: 'ok',
     })).toEqual({ Good: 'ok' });
+  });
+});
+
+describe('hostRequestHeadersToAdd', () => {
+  test('adds the host headers to a request on the same origin', () => {
+    expect(hostRequestHeadersToAdd(
+      'https://env.example/api/session',
+      'https://env.example',
+      { 'X-Oc-Hosting-Token': 'secret' },
+      [],
+    )).toEqual({ 'X-Oc-Hosting-Token': 'secret' });
+  });
+
+  test('leaves another origin untouched', () => {
+    expect(hostRequestHeadersToAdd(
+      'https://login.example/sign-in',
+      'https://env.example',
+      { 'X-Oc-Hosting-Token': 'secret' },
+      [],
+    )).toEqual({});
+  });
+
+  test('does not overwrite a header the request already carries', () => {
+    expect(hostRequestHeadersToAdd(
+      'https://env.example/api/session',
+      'https://env.example',
+      { 'X-Oc-Hosting-Token': 'stored' },
+      ['x-oc-hosting-token'],
+    )).toEqual({});
   });
 });
