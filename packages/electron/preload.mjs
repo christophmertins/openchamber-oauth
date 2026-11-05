@@ -73,8 +73,11 @@ const isPackagedDocument = currentOrigin === 'openchamber-ui://app'
   || location.protocol === 'openchamber-ui:';
 if (isPackagedDocument) {
   contextBridge.exposeInMainWorld('__OPENCHAMBER_READ_RUNTIME_CONFIG__', () => ipcRenderer.sendSync('openchamber:read-runtime-config'));
-  // The document asks for its runtime values while parsing; a host reached with
-  // a custom header needs that header before the first session check.
+}
+// The document asks for its runtime values while parsing; a host reached with
+// a custom header needs that header before the first session check. Exposed on
+// every local page, including a packaged one whose origin reports as opaque.
+if (isPackagedDocument || isLocalPage) {
   contextBridge.exposeInMainWorld('__OPENCHAMBER_READ_RUNTIME_HEADERS__', () => {
     try {
       const config = ipcRenderer.sendSync('openchamber:read-runtime-config');

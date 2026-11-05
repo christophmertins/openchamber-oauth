@@ -1,6 +1,6 @@
 import { getActiveRelayTunnel } from './relay/runtime-tunnel';
 import { TUNNEL_PARSE_BASE } from './relay/tunnel-payloads';
-import { buildRuntimeAuthHeaders, getRuntimeExtraHeadersSync } from './runtime-auth';
+import { buildRuntimeAuthHeaders, getRuntimeExtraHeadersSync, waitForPackagedRuntimeConfig } from './runtime-auth';
 import { isCapacitorApp } from './platform';
 import { observeRuntimeAuthResponse } from './runtime-auth-expiry';
 import { getRuntimeUrlResolver, type RuntimeUrlQuery } from './runtime-url';
@@ -324,6 +324,7 @@ const coalesceReadKey = (method: string, url: string, hasSignal: boolean, header
 };
 
 export const runtimeFetch = async (rawInput: string | URL | Request, init: RuntimeFetchOptions = {}): Promise<Response> => {
+  await waitForPackagedRuntimeConfig();
   const { query, directory, ...ownInit } = init;
   // Before either transport: the relay and the network see the same headers.
   const input = rawInput;

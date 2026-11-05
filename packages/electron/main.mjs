@@ -5946,7 +5946,8 @@ ipcMain.on('openchamber:take-safe-start', (event) => {
 
 // Sync, because the document's own scripts read these values as they run.
 ipcMain.on('openchamber:read-runtime-config', (event) => {
-  event.returnValue = isRuntimeConfigFrame(event.senderFrame)
+  const trusted = isRuntimeConfigFrame(event.senderFrame) || isLocalSender(event.sender);
+  event.returnValue = trusted
     ? {
       localOrigin: state.localOrigin || state.sidecarUrl || '',
       apiBaseUrl: state.apiBaseUrl || state.sidecarUrl || '',
@@ -5956,10 +5957,17 @@ ipcMain.on('openchamber:read-runtime-config', (event) => {
       requestHeaders: sanitizeRuntimeRequestHeaders(state.requestHeaders || {}),
     }
     : null;
-  log.info('[runtime-config] served', {
-    headers: Object.keys(state.requestHeaders || {}).length,
-    origin: event.senderFrame?.origin || '',
-  });
+  if (trusted) {
+    log.info('[runtime-config] served', {
+      headers: Object.keys(state.requestHeaders || {}).length,
+      origin: event.senderFrame?.origin || '',
+    });
+  } else {
+    log.warn('[runtime-config] refused', {
+      url: event.senderFrame?.url || event.sender?.getURL?.() || '',
+      origin: event.senderFrame?.origin || '',
+    });
+  }
 });
 
 ipcMain.handle('openchamber:dialog:open', async (event, options) => {

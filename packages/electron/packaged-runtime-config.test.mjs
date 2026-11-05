@@ -48,6 +48,11 @@ describe('runtime config script', () => {
     assert.deepEqual(window.__OPENCHAMBER_RUNTIME_HEADERS__, VALUES.requestHeaders);
   });
 
+  it('marks the values ready for requests that wait on them', () => {
+    const window = run({ __OPENCHAMBER_READ_RUNTIME_CONFIG__: () => VALUES });
+    assert.equal(window.__OPENCHAMBER_RUNTIME_CONFIG_READY__, true);
+  });
+
   it('keeps runtime headers the preload exposed for this window', () => {
     const window = run({
       __OPENCHAMBER_READ_RUNTIME_CONFIG__: () => VALUES,

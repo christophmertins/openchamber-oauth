@@ -121,6 +121,7 @@ export const setRuntimeBearerToken = (token: string | null | undefined): void =>
 };
 
 export const setRuntimeExtraHeaders = (headers: Record<string, string> | null | undefined): void => {
+  lastShellHeadersReadAt = 0;
   // These headers are for runtime HTTP fetches and URL-token minting. Browser-owned
   // realtime transports (EventSource/WebSocket) cannot attach arbitrary headers.
   const next = sanitizeRuntimeExtraHeaders(headers);
@@ -128,6 +129,44 @@ export const setRuntimeExtraHeaders = (headers: Record<string, string> | null | 
   runtimeExtraHeaders = next;
   resetRuntimeAuthGeneration();
 };
+
+// The packaged document's runtime values arrive through a script that can run
+// after the first app code on a cold, slow start. Requests wait for it so the
+// first session check already carries the host's headers.
+let packagedRuntimeConfigWait: Promise<void> | null = null;
+
+export const waitForPackagedRuntimeConfig = (): Promise<void> => {
+  if (!globalThis.window) return Promise.resolve();
+  // SAFETY: a packaged document exposes these globals through its preload; the
+  // check above leaves every other page without a reason to read them.
+  const runtimeWindow = globalThis.window as typeof window & {
+    __OPENCHAMBER_READ_RUNTIME_CONFIG__?: () => Record<string, string>;
+    __OPENCHAMBER_RUNTIME_CONFIG_READY__?: boolean;
+  };
+  if (!runtimeWindow.__OPENCHAMBER_READ_RUNTIME_CONFIG__ || runtimeWindow.__OPENCHAMBER_RUNTIME_CONFIG_READY__) {
+    return Promise.resolve();
+  }
+  if (!packagedRuntimeConfigWait) {
+    packagedRuntimeConfigWait = new Promise((resolve) => {
+      const finish = () => {
+        window.removeEventListener('openchamber:runtime-config-ready', finish);
+        resolve();
+      };
+      const timer = setTimeout(finish, 1_500);
+      window.addEventListener('openchamber:runtime-config-ready', () => {
+        clearTimeout(timer);
+        finish();
+      }, { once: true });
+    });
+  }
+  return packagedRuntimeConfigWait;
+};
+
+// A shell read is a synchronous IPC, so a runtime without headers must not ask
+// on every request. The gate's own retries are seconds apart and still get
+// another chance, where a one-time miss would lose the header for good.
+const SHELL_HEADERS_READ_INTERVAL_MS = 1_000;
+let lastShellHeadersReadAt = 0;
 
 export const getRuntimeExtraHeadersSync = (): Record<string, string> => {
   if (Object.keys(runtimeExtraHeaders).length > 0) return runtimeExtraHeaders;
@@ -141,13 +180,19 @@ export const getRuntimeExtraHeadersSync = (): Record<string, string> => {
   // Before the boot script delivered its values, ask the shell directly. A host
   // reached with a custom header must have it on the first session check.
   if (!runtimeWindow.__OPENCHAMBER_READ_RUNTIME_HEADERS__) return {};
+  const now = Date.now();
+  if (now - lastShellHeadersReadAt < SHELL_HEADERS_READ_INTERVAL_MS) return {};
+  lastShellHeadersReadAt = now;
   try {
     const fromShell = sanitizeRuntimeExtraHeaders(runtimeWindow.__OPENCHAMBER_READ_RUNTIME_HEADERS__());
-    runtimeWindow.__OPENCHAMBER_RUNTIME_HEADERS__ = fromShell;
-    return fromShell;
+    if (Object.keys(fromShell).length > 0) {
+      runtimeWindow.__OPENCHAMBER_RUNTIME_HEADERS__ = fromShell;
+      return fromShell;
+    }
   } catch {
-    return {};
+    // The shell answers only local pages; anything else keeps the empty result.
   }
+  return {};
 };
 
 export const getRuntimeBearerTokenSync = (): string => runtimeBearerToken || readInjectedBearerToken();
