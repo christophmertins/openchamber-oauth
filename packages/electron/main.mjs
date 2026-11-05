@@ -1327,6 +1327,32 @@ const registerPackagedUiProtocol = () => {
   });
 };
 
+// A renderer's first request can beat its runtime values on a cold start. The
+// shell knows each window's host and credential, so it adds the host's headers
+// at the network layer for requests to that host. A redirect to another origin
+// (a sign-in page) never matches and stays credential-free.
+const installHostRequestHeaderInjection = () => {
+  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    const requestHeaders = { ...details.requestHeaders };
+    try {
+      const requestUrl = new URL(details.url);
+      const contents = details.webContentsId ? webContents.fromId(details.webContentsId) : null;
+      const windowConfig = contents ? BrowserWindow.fromWebContents(contents)?.__ocRuntimeConfig : null;
+      const apiBaseUrl = normalizeHostUrl(windowConfig?.apiBaseUrl || state.apiBaseUrl || '');
+      const headers = sanitizeRuntimeRequestHeaders(windowConfig?.requestHeaders || state.requestHeaders || {});
+      if (apiBaseUrl && new URL(apiBaseUrl).origin === requestUrl.origin) {
+        for (const [name, value] of Object.entries(headers)) {
+          const present = Object.keys(requestHeaders).some((key) => key.toLowerCase() === name.toLowerCase());
+          if (!present) requestHeaders[name] = value;
+        }
+      }
+    } catch {
+      // Malformed addresses and destroyed windows leave the request untouched.
+    }
+    callback({ requestHeaders });
+  });
+};
+
 const isAnyWindowFocused = () =>
   BrowserWindow.getAllWindows().some(
     (window) => !window.isDestroyed() && window.isFocused(),
@@ -6384,6 +6410,7 @@ app.whenReady().then(async () => {
   nativeTheme.themeSource = readThemeSource();
   registerPackagedUiProtocol();
   hardenBrowserPanelSession();
+  installHostRequestHeaderInjection();
   setupAutoUpdater();
 
   if (process.platform === 'darwin') {
