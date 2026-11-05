@@ -85,6 +85,10 @@ export const probeElectronHostWithDeadline = async ({
       headers,
       signal: controller.signal,
       redirect: 'manual',
+      // Chromium answers these tiny probes from its HTTP cache with a
+      // conditional request and a bodiless 304, which is not `ok` and looked
+      // unreachable at startup. A probe wants the server's current answer.
+      cache: 'no-store',
     });
     if (controller.signal.aborted) {
       await discardBody(response);
@@ -123,12 +127,19 @@ export const probeElectronHostWithDeadline = async ({
     if (token) headers.Authorization = `Bearer ${token}`;
 
     const versionResponse = await fetchProbe(versionUrl, headers);
-    if (versionResponse.status === 401 || versionResponse.status === 403) return result('auth');
-    if (!versionResponse.ok) return result('unreachable');
-    const versionStatus = classifyVersionPayload(await versionResponse.json().catch(() => null));
-    if (versionStatus !== 'ok') return result(versionStatus);
+    if (versionResponse.status === 304) {
+      // A revalidation has no body to classify. It still proves the server is
+      // there, and the session check below decides the credential.
+    } else {
+      if (versionResponse.status === 401 || versionResponse.status === 403) return result('auth');
+      if (!versionResponse.ok) return result('unreachable');
+      const versionStatus = classifyVersionPayload(await versionResponse.json().catch(() => null));
+      if (versionStatus !== 'ok') return result(versionStatus);
+    }
 
     const sessionResponse = await fetchProbe(sessionUrl, headers);
+    // A revalidated session means the previous 200 answer still stands.
+    if (sessionResponse.status === 304) return result('ok');
     if (sessionResponse.status === 401 || sessionResponse.status === 403) return result('auth');
     if (!sessionResponse.ok) return result('unreachable');
     return result('ok');
